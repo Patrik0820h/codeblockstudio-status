@@ -5,17 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CodeBlock Studio Status</title>
 <meta name="description" content="Live status and uptime history for CodeBlock Studio." />
+<link rel="icon" href="favicon.ico" sizes="any" />
 <style>
   :root {
     color-scheme: dark;
     --bg: #08071a;
     --card: rgba(255, 255, 255, 0.05);
+    --card-hover: rgba(255, 255, 255, 0.07);
     --border: rgba(255, 255, 255, 0.1);
     --text: #ffffff;
     --muted: #94a3b8;
     --violet: #a78bfa;
+    --violet-bg: rgba(139, 92, 246, 0.12);
     --green: #34d399;
+    --green-bg: rgba(52, 211, 153, 0.1);
     --red: #f87171;
+    --red-bg: rgba(248, 113, 113, 0.1);
     --gray: rgba(255, 255, 255, 0.12);
   }
   * { box-sizing: border-box; }
@@ -26,23 +31,40 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   main {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 64px 24px 48px;
+    padding: 56px 24px 64px;
   }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand img {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    background: var(--violet-bg);
+  }
+  .brand span {
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .brand span b { color: var(--violet); font-weight: 700; }
   .eyebrow {
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--violet);
-    margin: 0;
+    margin: 40px 0 0;
   }
   h1 {
     font-size: 2.5rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin: 12px 0 0;
+    margin: 10px 0 0;
   }
   .updated {
     color: var(--muted);
@@ -54,43 +76,79 @@
     border-radius: 16px;
     border: 1px solid var(--border);
     background: var(--card);
-    padding: 20px 24px;
+    padding: 22px 24px;
     display: flex;
     align-items: center;
     gap: 12px;
     font-weight: 600;
+    font-size: 16px;
   }
-  .banner.operational { border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.08); }
-  .banner.issues { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
+  .banner.operational { border-color: rgba(52, 211, 153, 0.3); background: var(--green-bg); }
+  .banner.issues { border-color: rgba(248, 113, 113, 0.3); background: var(--red-bg); }
   .dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
   .dot.up { background: var(--green); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
   .dot.down { background: var(--red); box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.15); }
   .dot.unknown { background: var(--gray); }
-  .services { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
-  .service {
-    border-radius: 16px;
+
+  .panel {
+    margin-top: 20px;
+    border-radius: 20px;
     border: 1px solid var(--border);
     background: var(--card);
-    padding: 20px 24px;
+    overflow: hidden;
   }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .panel-head:hover { background: var(--card-hover); }
+  .panel-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .panel-head-right { display: flex; align-items: center; gap: 10px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .badge.up { background: var(--green-bg); color: var(--green); }
+  .badge.down { background: var(--red-bg); color: var(--red); }
+  .badge.unknown { background: var(--card); color: var(--muted); }
+  .chevron { transition: transform 0.15s ease; color: var(--muted); }
+  .chevron.open { transform: rotate(180deg); }
+
+  .services {
+    display: flex;
+    flex-direction: column;
+  }
+  .service { padding: 18px 24px; border-top: 1px solid var(--border); }
   .service-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
   }
-  .service-name { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
-  .uptime { font-size: 13px; font-weight: 600; }
+  .service-name { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+  .uptime { font-size: 13px; font-weight: 700; }
   .uptime.up { color: var(--green); }
   .uptime.down { color: var(--red); }
+  .uptime.unknown { color: var(--muted); }
   .bars {
     margin-top: 14px;
     display: flex;
     gap: 2px;
-    height: 32px;
+    height: 34px;
     align-items: stretch;
   }
-  .bar { flex: 1; border-radius: 2px; min-width: 2px; }
+  .bar { flex: 1; border-radius: 3px; min-width: 2px; transition: transform 0.1s ease; }
+  .bar:hover { transform: scaleY(1.08); }
   .bar.up { background: var(--green); }
   .bar.down { background: var(--red); }
   .bar.unknown { background: var(--gray); }
@@ -101,8 +159,32 @@
     font-size: 11px;
     color: var(--muted);
   }
+
+  .incidents-head {
+    padding: 18px 24px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .incident {
+    padding: 14px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .incident .dot { margin-top: 4px; }
+  .incident-body p { margin: 0; }
+  .incident-service { color: var(--text); font-weight: 600; }
+  .incident-time { color: var(--muted); margin-top: 2px !important; }
+  .no-incidents { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+
   footer {
-    margin-top: 48px;
+    margin-top: 40px;
     padding-top: 24px;
     border-top: 1px solid var(--border);
     font-size: 12px;
@@ -115,8 +197,13 @@
 </head>
 <body>
 <main>
+  <div class="brand">
+    <img src="favicon.ico" alt="" />
+    <span>CodeBlock <b>Studio</b></span>
+  </div>
+
   <p class="eyebrow">Status</p>
-  <h1>CodeBlock Studio</h1>
+  <h1>System Status</h1>
   <p class="updated" id="updated">Loading…</p>
 
   <div class="banner" id="banner">
@@ -124,7 +211,23 @@
     <span id="banner-text">Loading status…</span>
   </div>
 
-  <div class="services" id="services"></div>
+  <div class="panel">
+    <div class="panel-head" id="panel-toggle">
+      <h2>Current status by service</h2>
+      <div class="panel-head-right">
+        <span class="badge unknown" id="panel-badge">—</span>
+        <svg class="chevron open" id="panel-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none">
+          <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+    </div>
+    <div class="services" id="services"></div>
+  </div>
+
+  <div class="panel">
+    <div class="incidents-head">Recent incidents (last 90 days)</div>
+    <div id="incidents"></div>
+  </div>
 
   <footer>
     Checked automatically every 5 minutes, independently of the site it monitors.
@@ -142,7 +245,6 @@
   }
 
   function buildDayBuckets(checks) {
-    // One bucket per day for the last RETENTION_DAYS days, oldest first.
     const now = new Date();
     const days = [];
     for (let i = RETENTION_DAYS - 1; i >= 0; i--) {
@@ -166,6 +268,47 @@
     return days;
   }
 
+  function formatDuration(seconds) {
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const remMinutes = minutes % 60;
+    return remMinutes ? `${hours}h ${remMinutes}m` : `${hours}h`;
+  }
+
+  function findIncidents(serviceName, checks) {
+    // Groups consecutive "down" checks into a single incident, using the
+    // midpoint between the last known-up check and the first down check
+    // (and likewise on recovery) as the boundary, since the true failure
+    // moment lies somewhere in that gap, not exactly on a checked minute.
+    const sorted = [...checks].sort((a, b) => a.t - b.t);
+    const incidents = [];
+    let current = null;
+
+    for (let i = 0; i < sorted.length; i++) {
+      const check = sorted[i];
+      if (!check.up) {
+        if (!current) current = { start: check.t, end: check.t };
+        else current.end = check.t;
+      } else if (current) {
+        incidents.push(current);
+        current = null;
+      }
+    }
+    if (current) {
+      current.ongoing = true;
+      incidents.push(current);
+    }
+
+    return incidents.map((incident) => ({
+      service: serviceName,
+      start: incident.start,
+      end: incident.end,
+      ongoing: Boolean(incident.ongoing),
+    }));
+  }
+
   function renderService(service, checks) {
     const wrapper = document.createElement("div");
     wrapper.className = "service";
@@ -184,7 +327,7 @@
         <span class="dot ${currentStatus}"></span>
         ${service.name}
       </span>
-      <span class="uptime ${currentStatus === "down" ? "down" : "up"}">
+      <span class="uptime ${currentStatus}">
         ${uptimePct !== null ? uptimePct + "% uptime" : "No data yet"}
       </span>
     `;
@@ -208,6 +351,36 @@
     return { element: wrapper, currentStatus };
   }
 
+  function renderIncidents(container, allIncidents) {
+    container.innerHTML = "";
+
+    if (allIncidents.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "no-incidents";
+      empty.textContent = "No incidents recorded in this window.";
+      container.appendChild(empty);
+      return;
+    }
+
+    const sorted = [...allIncidents].sort((a, b) => b.start - a.start);
+    for (const incident of sorted) {
+      const row = document.createElement("div");
+      row.className = "incident";
+
+      const durationSeconds = Math.max(incident.end - incident.start, 60);
+      const startLabel = new Date(incident.start * 1000).toLocaleString();
+
+      row.innerHTML = `
+        <span class="dot down"></span>
+        <div class="incident-body">
+          <p class="incident-service">${incident.service}${incident.ongoing ? " — ongoing" : ""}</p>
+          <p class="incident-time">${startLabel} · ${incident.ongoing ? "still down" : "down for " + formatDuration(durationSeconds)}</p>
+        </div>
+      `;
+      container.appendChild(row);
+    }
+  }
+
   async function main() {
     const response = await fetch("data/history.json", { cache: "no-store" });
     const data = await response.json();
@@ -217,6 +390,7 @@
 
     let anyDown = false;
     let anyData = false;
+    const allIncidents = [];
 
     for (const service of data.services) {
       const checks = data.checks[service.id] ?? [];
@@ -224,24 +398,34 @@
       const { element, currentStatus } = renderService(service, checks);
       if (currentStatus === "down") anyDown = true;
       container.appendChild(element);
+      allIncidents.push(...findIncidents(service.name, checks));
     }
+
+    renderIncidents(document.getElementById("incidents"), allIncidents);
 
     const banner = document.getElementById("banner");
     const bannerDot = document.getElementById("banner-dot");
     const bannerText = document.getElementById("banner-text");
+    const panelBadge = document.getElementById("panel-badge");
 
     if (!anyData) {
       banner.className = "banner";
       bannerDot.className = "dot unknown";
       bannerText.textContent = "Waiting for the first check to run…";
+      panelBadge.className = "badge unknown";
+      panelBadge.textContent = "No data";
     } else if (anyDown) {
       banner.className = "banner issues";
       bannerDot.className = "dot down";
       bannerText.textContent = "We're aware of an issue with one or more services.";
+      panelBadge.className = "badge down";
+      panelBadge.textContent = "Issues detected";
     } else {
       banner.className = "banner operational";
       bannerDot.className = "dot up";
       bannerText.textContent = "All systems operational";
+      panelBadge.className = "badge up";
+      panelBadge.textContent = "Operational";
     }
 
     const allChecks = Object.values(data.checks).flat();
@@ -250,6 +434,15 @@
       ? "Last checked " + new Date(lastCheck * 1000).toLocaleString()
       : "No checks recorded yet";
   }
+
+  const toggle = document.getElementById("panel-toggle");
+  const chevron = document.getElementById("panel-chevron");
+  const servicesEl = document.getElementById("services");
+  toggle.addEventListener("click", () => {
+    const collapsed = servicesEl.style.display === "none";
+    servicesEl.style.display = collapsed ? "" : "none";
+    chevron.classList.toggle("open", collapsed);
+  });
 
   main().catch((error) => {
     document.getElementById("banner-text").textContent = "Could not load status data.";
