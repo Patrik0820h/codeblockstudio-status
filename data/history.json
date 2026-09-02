@@ -1,0 +1,12 @@
+{
+  "services": [
+    { "id": "site", "name": "CodeBlock Studio", "url": "https://www.codeblockstudio.hu" },
+    { "id": "helpcenter", "name": "Help Center", "url": "https://helpcenter.codeblockstudio.hu" },
+    { "id": "api", "name": "Backend & Database", "url": "https://www.codeblockstudio.hu/api/health" }
+  ],
+  "checks": {
+    "site": [],
+    "helpcenter": [],
+    "api": []
+  }
+}

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CodeBlock Studio Status</title>
+<meta name="description" content="Live status and uptime history for CodeBlock Studio." />
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #08071a;
+    --card: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.1);
+    --text: #ffffff;
+    --muted: #94a3b8;
+    --violet: #a78bfa;
+    --green: #34d399;
+    --red: #f87171;
+    --gray: rgba(255, 255, 255, 0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px 24px 48px;
+  }
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin: 0;
+  }
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 12px 0 0;
+  }
+  .updated {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 12px 0 0;
+  }
+  .banner {
+    margin-top: 32px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+  }
+  .banner.operational { border-color: rgba(52, 211, 153, 0.3); background: rgba(52, 211, 153, 0.08); }
+  .banner.issues { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.08); }
+  .dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+  .dot.up { background: var(--green); box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15); }
+  .dot.down { background: var(--red); box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.15); }
+  .dot.unknown { background: var(--gray); }
+  .services { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+  .service {
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 20px 24px;
+  }
+  .service-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .service-name { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+  .uptime { font-size: 13px; font-weight: 600; }
+  .uptime.up { color: var(--green); }
+  .uptime.down { color: var(--red); }
+  .bars {
+    margin-top: 14px;
+    display: flex;
+    gap: 2px;
+    height: 32px;
+    align-items: stretch;
+  }
+  .bar { flex: 1; border-radius: 2px; min-width: 2px; }
+  .bar.up { background: var(--green); }
+  .bar.down { background: var(--red); }
+  .bar.unknown { background: var(--gray); }
+  .bar-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+  footer a { color: var(--violet); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Status</p>
+  <h1>CodeBlock Studio</h1>
+  <p class="updated" id="updated">Loading…</p>
+
+  <div class="banner" id="banner">
+    <span class="dot unknown" id="banner-dot"></span>
+    <span id="banner-text">Loading status…</span>
+  </div>
+
+  <div class="services" id="services"></div>
+
+  <footer>
+    Checked automatically every 5 minutes, independently of the site it monitors.
+    <br />
+    <a href="https://www.codeblockstudio.hu">codeblockstudio.hu</a>
+  </footer>
+</main>
+
+<script>
+  const RETENTION_DAYS = 90;
+
+  function dayKey(timestampSeconds) {
+    const date = new Date(timestampSeconds * 1000);
+    return `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+  }
+
+  function buildDayBuckets(checks) {
+    // One bucket per day for the last RETENTION_DAYS days, oldest first.
+    const now = new Date();
+    const days = [];
+    for (let i = RETENTION_DAYS - 1; i >= 0; i--) {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+      days.push({ key: `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`, date: d, status: "unknown" });
+    }
+
+    const byDay = {};
+    for (const check of checks) {
+      const key = dayKey(check.t);
+      if (!byDay[key]) byDay[key] = [];
+      byDay[key].push(check);
+    }
+
+    for (const day of days) {
+      const dayChecks = byDay[day.key];
+      if (!dayChecks || dayChecks.length === 0) continue;
+      day.status = dayChecks.some((c) => !c.up) ? "down" : "up";
+    }
+
+    return days;
+  }
+
+  function renderService(service, checks) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "service";
+
+    const latest = checks.length > 0 ? checks[checks.length - 1] : null;
+    const currentStatus = latest ? (latest.up ? "up" : "down") : "unknown";
+    const upCount = checks.filter((c) => c.up).length;
+    const uptimePct = checks.length > 0 ? ((upCount / checks.length) * 100).toFixed(2) : null;
+
+    const days = buildDayBuckets(checks);
+
+    const head = document.createElement("div");
+    head.className = "service-head";
+    head.innerHTML = `
+      <span class="service-name">
+        <span class="dot ${currentStatus}"></span>
+        ${service.name}
+      </span>
+      <span class="uptime ${currentStatus === "down" ? "down" : "up"}">
+        ${uptimePct !== null ? uptimePct + "% uptime" : "No data yet"}
+      </span>
+    `;
+    wrapper.appendChild(head);
+
+    const bars = document.createElement("div");
+    bars.className = "bars";
+    for (const day of days) {
+      const bar = document.createElement("div");
+      bar.className = `bar ${day.status}`;
+      bar.title = day.date.toISOString().slice(0, 10) + ": " + day.status;
+      bars.appendChild(bar);
+    }
+    wrapper.appendChild(bars);
+
+    const labels = document.createElement("div");
+    labels.className = "bar-labels";
+    labels.innerHTML = `<span>${RETENTION_DAYS} days ago</span><span>Today</span>`;
+    wrapper.appendChild(labels);
+
+    return { element: wrapper, currentStatus };
+  }
+
+  async function main() {
+    const response = await fetch("data/history.json", { cache: "no-store" });
+    const data = await response.json();
+
+    const container = document.getElementById("services");
+    container.innerHTML = "";
+
+    let anyDown = false;
+    let anyData = false;
+
+    for (const service of data.services) {
+      const checks = data.checks[service.id] ?? [];
+      if (checks.length > 0) anyData = true;
+      const { element, currentStatus } = renderService(service, checks);
+      if (currentStatus === "down") anyDown = true;
+      container.appendChild(element);
+    }
+
+    const banner = document.getElementById("banner");
+    const bannerDot = document.getElementById("banner-dot");
+    const bannerText = document.getElementById("banner-text");
+
+    if (!anyData) {
+      banner.className = "banner";
+      bannerDot.className = "dot unknown";
+      bannerText.textContent = "Waiting for the first check to run…";
+    } else if (anyDown) {
+      banner.className = "banner issues";
+      bannerDot.className = "dot down";
+      bannerText.textContent = "We're aware of an issue with one or more services.";
+    } else {
+      banner.className = "banner operational";
+      bannerDot.className = "dot up";
+      bannerText.textContent = "All systems operational";
+    }
+
+    const allChecks = Object.values(data.checks).flat();
+    const lastCheck = allChecks.length > 0 ? Math.max(...allChecks.map((c) => c.t)) : null;
+    document.getElementById("updated").textContent = lastCheck
+      ? "Last checked " + new Date(lastCheck * 1000).toLocaleString()
+      : "No checks recorded yet";
+  }
+
+  main().catch((error) => {
+    document.getElementById("banner-text").textContent = "Could not load status data.";
+    console.error(error);
+  });
+</script>
+</body>
+</html>
