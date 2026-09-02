@@ -431,8 +431,8 @@
       const recentLabels = document.createElement("div");
       recentLabels.className = "bar-labels";
       const oldest = recentChecks[0];
-      const hoursSpan = Math.max(1, Math.round((recentChecks[recentChecks.length - 1].t - oldest.t) / 3600));
-      recentLabels.innerHTML = `<span>~${hoursSpan}h ago</span><span>Now</span>`;
+      const spanSeconds = Math.max(recentChecks[recentChecks.length - 1].t - oldest.t, 60);
+      recentLabels.innerHTML = `<span>~${formatDuration(spanSeconds)} ago</span><span>Now</span>`;
       wrapper.appendChild(recentLabels);
     }
 
