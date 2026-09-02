@@ -202,6 +202,34 @@
   .incident-time { color: var(--muted); margin-top: 2px !important; }
   .no-incidents { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
 
+  .tabs {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+  }
+  .tabs-inner {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    padding: 4px;
+    gap: 2px;
+  }
+  .tab {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--violet); color: #ffffff; }
+
   footer {
     margin-top: 40px;
     padding-top: 24px;
@@ -230,22 +258,33 @@
     <span id="banner-text">Loading status…</span>
   </div>
 
-  <div class="panel">
-    <div class="panel-head" id="panel-toggle">
-      <h2>Current status by service</h2>
-      <div class="panel-head-right">
-        <span class="badge unknown" id="panel-badge">—</span>
-        <svg class="chevron open" id="panel-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none">
-          <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </div>
+  <div class="tabs">
+    <div class="tabs-inner" id="tabs">
+      <button type="button" class="tab active" data-tab="monitors">Monitors</button>
+      <button type="button" class="tab" data-tab="incidents">Incidents</button>
     </div>
-    <div class="services" id="services"></div>
   </div>
 
-  <div class="panel">
-    <div class="incidents-head">Recent incidents (last 90 days)</div>
-    <div id="incidents"></div>
+  <div id="view-monitors">
+    <div class="panel">
+      <div class="panel-head" id="panel-toggle">
+        <h2>Current status by service</h2>
+        <div class="panel-head-right">
+          <span class="badge unknown" id="panel-badge">—</span>
+          <svg class="chevron open" id="panel-chevron" width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+      <div class="services" id="services"></div>
+    </div>
+  </div>
+
+  <div id="view-incidents" style="display: none;">
+    <div class="panel">
+      <div class="incidents-head">Recent incidents (last 90 days)</div>
+      <div id="incidents"></div>
+    </div>
   </div>
 
   <footer>
@@ -483,6 +522,18 @@
       ? "Last checked " + new Date(lastCheck * 1000).toLocaleString()
       : "No checks recorded yet";
   }
+
+  const tabs = document.getElementById("tabs");
+  const viewMonitors = document.getElementById("view-monitors");
+  const viewIncidents = document.getElementById("view-incidents");
+  tabs.addEventListener("click", (event) => {
+    const button = event.target.closest(".tab");
+    if (!button) return;
+    tabs.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab === button));
+    const showMonitors = button.dataset.tab === "monitors";
+    viewMonitors.style.display = showMonitors ? "" : "none";
+    viewIncidents.style.display = showMonitors ? "none" : "";
+  });
 
   const toggle = document.getElementById("panel-toggle");
   const chevron = document.getElementById("panel-chevron");
