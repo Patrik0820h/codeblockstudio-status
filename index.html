@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CodeBlock Studio Status</title>
-<link rel="icon" href="codeblock-mascot.png" sizes="any" />
 <meta name="description" content="Live status and uptime history for CodeBlock Studio." />
 <link rel="icon" href="favicon.ico" sizes="any" />
 <style>
@@ -160,6 +159,25 @@
     font-size: 11px;
     color: var(--muted);
   }
+  .recent-label {
+    margin-top: 18px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .recent-bars {
+    margin-top: 8px;
+    display: flex;
+    gap: 2px;
+    height: 22px;
+    align-items: stretch;
+  }
+  .recent-bar { flex: 1; border-radius: 2px; min-width: 2px; transition: transform 0.1s ease; }
+  .recent-bar:hover { transform: scaleY(1.1); }
+  .recent-bar.up { background: var(--green); opacity: 0.85; }
+  .recent-bar.down { background: var(--red); }
 
   .incidents-head {
     padding: 18px 24px;
@@ -239,6 +257,7 @@
 
 <script>
   const RETENTION_DAYS = 90;
+  const RECENT_CHECKS_COUNT = 72; // ~6 hours at a 5-minute check interval
 
   function dayKey(timestampSeconds) {
     const date = new Date(timestampSeconds * 1000);
@@ -348,6 +367,35 @@
     labels.className = "bar-labels";
     labels.innerHTML = `<span>${RETENTION_DAYS} days ago</span><span>Today</span>`;
     wrapper.appendChild(labels);
+
+    // A second, finer-grained row: the individual last checks (5-minute
+    // interval each), not aggregated by day like the row above, so a
+    // short blip is visible even though it wouldn't stand out over 90
+    // days of daily bars.
+    const recentChecks = checks.slice(-RECENT_CHECKS_COUNT);
+    if (recentChecks.length > 0) {
+      const recentLabel = document.createElement("div");
+      recentLabel.className = "recent-label";
+      recentLabel.textContent = "Recent checks (5-minute interval)";
+      wrapper.appendChild(recentLabel);
+
+      const recentBars = document.createElement("div");
+      recentBars.className = "recent-bars";
+      for (const check of recentChecks) {
+        const bar = document.createElement("div");
+        bar.className = `recent-bar ${check.up ? "up" : "down"}`;
+        bar.title = new Date(check.t * 1000).toLocaleString() + ": " + (check.up ? "up" : "down") + ` (${check.ms}ms)`;
+        recentBars.appendChild(bar);
+      }
+      wrapper.appendChild(recentBars);
+
+      const recentLabels = document.createElement("div");
+      recentLabels.className = "bar-labels";
+      const oldest = recentChecks[0];
+      const hoursSpan = Math.max(1, Math.round((recentChecks[recentChecks.length - 1].t - oldest.t) / 3600));
+      recentLabels.innerHTML = `<span>~${hoursSpan}h ago</span><span>Now</span>`;
+      wrapper.appendChild(recentLabels);
+    }
 
     return { element: wrapper, currentStatus };
   }
