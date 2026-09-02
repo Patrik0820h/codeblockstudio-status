@@ -1,12 +1,63 @@
 {
   "services": [
+<<<<<<< HEAD
     { "id": "site", "name": "CodeBlock Studio", "url": "https://www.codeblockstudio.hu" },
     { "id": "helpcenter", "name": "Help Center", "url": "https://helpcenter.codeblockstudio.hu" },
     { "id": "api", "name": "API & Database", "url": "https://www.codeblockstudio.hu/api/health" }
+=======
+    {
+      "id": "site",
+      "name": "CodeBlock Studio",
+      "url": "https://www.codeblockstudio.hu"
+    },
+    {
+      "id": "helpcenter",
+      "name": "Help Center",
+      "url": "https://helpcenter.codeblockstudio.hu"
+    },
+    {
+      "id": "api",
+      "name": "API & Database",
+      "url": "https://www.codeblockstudio.hu/api/health"
+    }
+>>>>>>> 59a1ffd008aa1eff9906f3226d9fc3c0b41498c2
   ],
   "checks": {
-    "site": [],
-    "helpcenter": [],
-    "api": []
+    "site": [
+      {
+        "t": 1788375966,
+        "up": true,
+        "ms": 1287
+      },
+      {
+        "t": 1788376181,
+        "up": true,
+        "ms": 515
+      }
+    ],
+    "helpcenter": [
+      {
+        "t": 1788375966,
+        "up": true,
+        "ms": 697
+      },
+      {
+        "t": 1788376181,
+        "up": true,
+        "ms": 594
+      }
+    ],
+    "api": [
+      {
+        "t": 1788375966,
+        "up": true,
+        "ms": 1930
+      },
+      {
+        "t": 1788376181,
+        "up": true,
+        "ms": 594
+      }
+    ]
   }
 }
