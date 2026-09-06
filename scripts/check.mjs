@@ -40,7 +40,7 @@ async function main() {
   const cutoff = nowSeconds - RETENTION_SECONDS;
 
   for (const service of data.services) {
-    const requireExactly200 = service.id === "api";
+    const requireExactly200 = service.id === "api" || service.id === "ai";
     const result = await checkUrl(service.url, requireExactly200);
 
     const history = data.checks[service.id] ?? [];
