@@ -19,6 +19,11 @@
       "id": "contact",
       "name": "Contact",
       "url": "https://contact.codeblockstudio.hu"
+    },
+    {
+      "id": "ai",
+      "name": "AI Assistant",
+      "url": "https://www.codeblockstudio.hu/api/health/ai"
     }
   ],
   "checks": {
