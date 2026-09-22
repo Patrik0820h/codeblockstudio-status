@@ -307,7 +307,11 @@
     for (const day of days) {
       const dayChecks = byDay[day.key];
       if (!dayChecks || dayChecks.length === 0) continue;
-      day.status = dayChecks.some((c) => !c.up) ? "down" : "up";
+      // The day's bar reflects its last check that day, not whether any
+      // check that day failed — a problem that got fixed later the same
+      // day should show green again, not stay red for the rest of the day.
+      const lastCheckOfDay = dayChecks.reduce((latest, c) => (c.t > latest.t ? c : latest));
+      day.status = lastCheckOfDay.up ? "up" : "down";
     }
 
     return days;
