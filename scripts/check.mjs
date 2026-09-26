@@ -4,7 +4,7 @@
 // page itself down with it.
 //
 // The "api" service is checked for exactly HTTP 200, not just "did it
-// respond" — codeblockstudio.hu/api/health deliberately returns 503 when
+// respond" — codeblockstudio.net/api/health deliberately returns 503 when
 // its database is unreachable, so a plain reachability check would miss
 // exactly the failure mode it exists to catch.
 

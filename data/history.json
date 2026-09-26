@@ -3,27 +3,27 @@
     {
       "id": "site",
       "name": "CodeBlock Studio",
-      "url": "https://www.codeblockstudio.hu"
+      "url": "https://www.codeblockstudio.net"
     },
     {
       "id": "helpcenter",
       "name": "Help Center",
-      "url": "https://helpcenter.codeblockstudio.hu"
+      "url": "https://helpcenter.codeblockstudio.net"
     },
     {
       "id": "api",
       "name": "API & Database",
-      "url": "https://www.codeblockstudio.hu/api/health"
+      "url": "https://www.codeblockstudio.net/api/health"
     },
     {
       "id": "contact",
       "name": "Contact",
-      "url": "https://contact.codeblockstudio.hu"
+      "url": "https://contact.codeblockstudio.net"
     },
     {
       "id": "ai",
       "name": "AI Assistant",
-      "url": "https://www.codeblockstudio.hu/api/health/ai"
+      "url": "https://www.codeblockstudio.net/api/health/ai"
     }
   ],
   "checks": {
